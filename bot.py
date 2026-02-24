@@ -1,19 +1,21 @@
-import os
-import requests
+import logging
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 
-TOKEN = os.environ.get("TOKEN")
+TOKEN = "8655371651:AAGrecLlCakLa7Pcv5JTG94BPpiRFw4qbQc"
 
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("RU-PulseBot запущен 🚀")
+logging.basicConfig(
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    level=logging.INFO,
+)
 
-async def signals(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Сигналы скоро будут подключены 📊")
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    await update.message.reply_text("Бот работает ✅")
 
-app = ApplicationBuilder().token(TOKEN).build()
+def main() -> None:
+    app = ApplicationBuilder().token(TOKEN).build()
+    app.add_handler(CommandHandler("start", start))
+    app.run_polling(close_loop=False)
 
-app.add_handler(CommandHandler("start", start))
-app.add_handler(CommandHandler("signals", signals))
-
-app.run_polling()
+if __name__ == "__main__":
+    main()
