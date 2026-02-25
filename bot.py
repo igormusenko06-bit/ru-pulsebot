@@ -1,18 +1,18 @@
 import os
 import logging
-import threading
+import asyncio
 from http.server import BaseHTTPRequestHandler, HTTPServer
+import threading
 
-from telegram import Bot
-from telegram.ext import Updater, CommandHandler
+from telegram import Update
+from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 
 logging.basicConfig(level=logging.INFO)
-log = logging.getLogger("ru-pulsebot")
 
-TOKEN = os.environ.get("TOKEN", "").strip()
-CHANNEL_ID = int(os.environ.get("CHANNEL_ID", "0"))  # например: -1003761925434
+TOKEN = os.environ.get("TOKEN")
+CHANNEL_ID = int(os.environ.get("CHANNEL_ID"))
 
-# ---- HTTP сервер для Render ----
+# --- HTTP сервер для Render ---
 def start_http_server():
     port = int(os.environ.get("PORT", 10000))
 
@@ -28,34 +28,25 @@ def start_http_server():
     HTTPServer(("0.0.0.0", port), Handler).serve_forever()
 
 threading.Thread(target=start_http_server, daemon=True).start()
-# -------------------------------
+# --------------------------------
 
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("Бот работает ✅")
 
-def start_cmd(update, context):
-    update.message.reply_text("Бот работает ✅\nКоманды: /signal")
+async def signal(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await context.bot.send_message(
+        chat_id=CHANNEL_ID,
+        text="🚀 ТЕСТ СИГНАЛ\nMOEX\nBUY"
+    )
+    await update.message.reply_text("Отправил в канал ✅")
 
+async def main():
+    app = ApplicationBuilder().token(TOKEN).build()
 
-def signal_cmd(update, context):
-    bot = Bot(token=TOKEN)
-    bot.send_message(chat_id=CHANNEL_ID, text="🚀 ТЕСТ СИГНАЛ\n\nMOEX\nBUY\nTP: 123\nSL: 120")
-    update.message.reply_text("Отправил в канал ✅")
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler("signal", signal))
 
-
-def main():
-    if not TOKEN:
-        raise ValueError("TOKEN не задан. Добавь в Render Environment Variables: TOKEN=...")
-
-    if CHANNEL_ID == 0:
-        raise ValueError("CHANNEL_ID не задан. Добавь в Render Environment Variables: CHANNEL_ID=-100...")
-
-    updater = Updater(TOKEN, use_context=True)
-    dp = updater.dispatcher
-    dp.add_handler(CommandHandler("start", start_cmd))
-    dp.add_handler(CommandHandler("signal", signal_cmd))
-
-    updater.start_polling()
-    updater.idle()
-
+    await app.run_polling()
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
