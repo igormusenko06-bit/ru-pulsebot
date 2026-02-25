@@ -12,7 +12,7 @@ logging.basicConfig(level=logging.INFO)
 TOKEN = os.environ.get("TOKEN")
 CHANNEL_ID = int(os.environ.get("CHANNEL_ID"))
 
-# --- HTTP сервер для Render ---
+# ---- HTTP сервер для Render ----
 def start_http_server():
     port = int(os.environ.get("PORT", 10000))
 
@@ -28,7 +28,7 @@ def start_http_server():
     HTTPServer(("0.0.0.0", port), Handler).serve_forever()
 
 threading.Thread(target=start_http_server, daemon=True).start()
-# --------------------------------
+# ---------------------------------
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Бот работает ✅")
